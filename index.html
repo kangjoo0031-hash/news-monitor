@@ -385,15 +385,17 @@ function formatDate(dateStr) {
 
 async function fetchRSS(feed) {
   try {
-    const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.url)}&count=20`;
-    const res = await fetch(apiUrl);
-    const data = await res.json();
-    if (data.status !== 'ok') return [];
-    return data.items.map(item => {
-      const title = item.title || '';
-      const link = item.link || '';
-      const desc = (item.description || item.content || '').replace(/<[^>]*>/g, '');
-      const pubDate = item.pubDate || '';
+    const proxy = `https://corsproxy.io/?${encodeURIComponent(feed.url)}`;
+    const res = await fetch(proxy);
+    const text = await res.text();
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(text, 'text/xml');
+    const items = xml.querySelectorAll('item');
+    return Array.from(items).map(item => {
+      const title = item.querySelector('title')?.textContent || '';
+      const link = item.querySelector('link')?.textContent || item.querySelector('link')?.getAttribute('href') || '';
+      const desc = (item.querySelector('description')?.textContent || '').replace(/<[^>]*>/g, '');
+      const pubDate = item.querySelector('pubDate')?.textContent || '';
       const fullText = title + ' ' + desc;
       const matched = findKeywords(fullText);
       return { title, link, desc, pubDate, source: feed.name, matched };
