@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>노사 이슈 모니터</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --accent: #4f7cff;
+    --accent2: #ff6b6b;
+    --text: #e8eaf0;
+    --text-muted: #7c829a;
+    --border: #2a2f45;
+    --tag-bg: #1e2540;
+  }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 10;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+
+  .logo-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--accent2);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .last-updated {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .refresh-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .refresh-btn:hover { opacity: 0.85; }
+  .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+
+  .stats-bar {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 20px;
+    flex: 1;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 4px;
+  }
+
+  .stat-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .sources-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .source-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .source-btn.active {
+    background: var(--tag-bg);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .keyword-filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+
+  .kw-tag {
+    background: var(--tag-bg);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .kw-tag.active {
+    border-color: var(--accent2);
+    color: var(--accent2);
+  }
+
+  .section-title {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+  }
+
+  .news-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .news-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    text-decoration: none;
+    display: block;
+    color: inherit;
+    margin-bottom: 6px;
+  }
+
+  .news-card:hover {
+    border-color: var(--accent);
+    background: var(--surface2);
+  }
+
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .card-title {
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.5;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .card-source {
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    margin-top: 2px;
+  }
+
+  .card-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .card-date {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .card-keywords {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .keyword-badge {
+    background: var(--tag-bg);
+    border: 1px solid var(--border);
+    color: var(--accent2);
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 3px;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+  }
+
+  .empty-icon { font-size: 36px; margin-bottom: 12px; }
+  .empty-title { font-size: 16px; margin-bottom: 6px; color: var(--text); }
+  .empty-desc { font-size: 13px; line-height: 1.6; }
+
+  .loading {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .skeleton {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    animation: shimmer 1.5s infinite;
+  }
+
+  .skeleton-line {
+    height: 14px;
+    background: var(--surface2);
+    border-radius: 4px;
+    margin-bottom: 8px;
+  }
+
+  .skeleton-line.short { width: 40%; }
+  .skeleton-line.medium { width: 70%; }
+
+  @keyframes shimmer {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+
+  .error-banner {
+    background: #2a1a1a;
+    border: 1px solid #5a2a2a;
+    border-radius: 8px;
+    padding: 14px 18px;
+    color: #ff9090;
+    font-size: 13px;
+    margin-bottom: 20px;
+    display: none;
+  }
+
+  @media (max-width: 600px) {
+    header { padding: 16px; }
+    .main { padding: 20px 16px; }
+    .stats-bar { gap: 10px; }
+    .stat { padding: 12px 14px; }
+    .stat-value { font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    노사 이슈 모니터
+  </div>
+  <div class="header-right">
+    <span class="last-updated" id="lastUpdated">—</span>
+    <button class="refresh-btn" id="refreshBtn" onclick="loadAllFeeds()">새로고침</button>
+  </div>
+</header>
+
+<div class="main">
+  <div class="stats-bar">
+    <div class="stat">
+      <div class="stat-label">수집된 기사</div>
+      <div class="stat-value" id="totalCount">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">키워드 매칭</div>
+      <div class="stat-value" id="matchedCount">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">소스</div>
+      <div class="stat-value" id="sourceCount">—</div>
+    </div>
+  </div>
+
+  <div class="sources-bar" id="sourcesBar"></div>
+
+  <div class="keyword-filters" id="keywordFilters"></div>
+
+  <div class="section-title" id="sectionTitle">기사 목록</div>
+
+  <div class="error-banner" id="errorBanner"></div>
+
+  <div id="newsList" class="news-list"></div>
+</div>
+
+<script>
+const KEYWORDS = ['파업', '단체교섭', '임금협상', '노동쟁의', '해고', '노조', '조합원', '쟁의', '구조조정', '정리해고', '희망퇴직', '단협', '총파업'];
+
+// ⬇️ 여기에 RSS URL 추가하세요
+const RSS_FEEDS = [
+  { name: 'Google Alerts', url: 'https://www.google.co.kr/alerts/feeds/09037294967094735094/4886075638370703537' },
+  { name: 'Google Alerts 2', url: 'https://www.google.com/alerts/feeds/09037294967094735094/5128488730585816497' },
+  { name: '네이버 뉴스', url: 'https://search.naver.com/rss?where=news&query=삼성전자+노사' },
+  { name: '네이버 뉴스', url: 'https://search.naver.com/rss?where=news&query=삼성전자+노동조합' },
+  { name: '네이버 뉴스', url: 'https://search.naver.com/rss?where=news&query=삼성전자+노조' },
+  { name: '네이버 뉴스', url: 'https://search.naver.com/rss?where=news&query=삼성전자+노사' },
+  { name: '네이버 뉴스', url: 'https://search.naver.com/rss?where=news&query=삼성전자+DX' },
+];
+
+let allArticles = [];
+let activeSource = 'all';
+let activeKeyword = 'all';
+
+function findKeywords(text) {
+  return KEYWORDS.filter(kw => text.includes(kw));
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d)) return dateStr;
+  const now = new Date();
+  const diff = Math.floor((now - d) / 60000);
+  if (diff < 60) return `${diff}분 전`;
+  if (diff < 1440) return `${Math.floor(diff / 60)}시간 전`;
+  return `${d.getMonth()+1}/${d.getDate()}`;
+}
+
+async function fetchRSS(feed) {
+  try {
+    const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.url)}&count=20`;
+    const res = await fetch(apiUrl);
+    const data = await res.json();
+    if (data.status !== 'ok') return [];
+    return data.items.map(item => {
+      const title = item.title || '';
+      const link = item.link || '';
+      const desc = (item.description || item.content || '').replace(/<[^>]*>/g, '');
+      const pubDate = item.pubDate || '';
+      const fullText = title + ' ' + desc;
+      const matched = findKeywords(fullText);
+      return { title, link, desc, pubDate, source: feed.name, matched };
+    }).filter(a => a.matched.length > 0);
+  } catch (e) {
+    return [];
+  }
+}
+
+async function loadAllFeeds() {
+  const btn = document.getElementById('refreshBtn');
+  btn.disabled = true;
+  btn.textContent = '로딩 중...';
+
+  document.getElementById('newsList').innerHTML = `
+    <div class="loading">
+      ${[1,2,3].map(() => `<div class="skeleton"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div>`).join('')}
+    </div>`;
+
+  document.getElementById('errorBanner').style.display = 'none';
+
+  const validFeeds = RSS_FEEDS.filter(f => f.url && !f.url.startsWith('YOUR_'));
+  
+  if (validFeeds.length === 0) {
+    document.getElementById('newsList').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📡</div>
+        <div class="empty-title">RSS URL을 설정해주세요</div>
+        <div class="empty-desc">HTML 파일 상단 RSS_FEEDS 배열에<br>Google Alerts / 네이버 RSS URL을 입력하세요.</div>
+      </div>`;
+    btn.disabled = false;
+    btn.textContent = '새로고침';
+    return;
+  }
+
+  const results = await Promise.all(validFeeds.map(fetchRSS));
+  allArticles = results.flat().sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+
+  document.getElementById('totalCount').textContent = allArticles.length;
+  document.getElementById('matchedCount').textContent = allArticles.filter(a => a.matched.length > 0).length;
+  document.getElementById('sourceCount').textContent = validFeeds.length;
+  document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) + ' 업데이트';
+
+  renderSourceBtns(validFeeds);
+  renderKeywordTags();
+  renderArticles();
+
+  btn.disabled = false;
+  btn.textContent = '새로고침';
+}
+
+function renderSourceBtns(feeds) {
+  const bar = document.getElementById('sourcesBar');
+  bar.innerHTML = `<button class="source-btn ${activeSource === 'all' ? 'active' : ''}" onclick="filterSource('all')">전체</button>` +
+    feeds.map(f => `<button class="source-btn ${activeSource === f.name ? 'active' : ''}" onclick="filterSource('${f.name}')">${f.name}</button>`).join('');
+}
+
+function renderKeywordTags() {
+  const bar = document.getElementById('keywordFilters');
+  const usedKws = [...new Set(allArticles.flatMap(a => a.matched))];
+  bar.innerHTML = `<span class="kw-tag ${activeKeyword === 'all' ? 'active' : ''}" onclick="filterKeyword('all')">전체 키워드</span>` +
+    usedKws.map(kw => `<span class="kw-tag ${activeKeyword === kw ? 'active' : ''}" onclick="filterKeyword('${kw}')">${kw}</span>`).join('');
+}
+
+function filterSource(source) {
+  activeSource = source;
+  document.querySelectorAll('.source-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderArticles();
+}
+
+function filterKeyword(kw) {
+  activeKeyword = kw;
+  document.querySelectorAll('.kw-tag').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderArticles();
+}
+
+function renderArticles() {
+  let filtered = allArticles;
+  if (activeSource !== 'all') filtered = filtered.filter(a => a.source === activeSource);
+  if (activeKeyword !== 'all') filtered = filtered.filter(a => a.matched.includes(activeKeyword));
+
+  document.getElementById('sectionTitle').textContent = `기사 ${filtered.length}건`;
+
+  if (filtered.length === 0) {
+    document.getElementById('newsList').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <div class="empty-title">해당 조건의 기사가 없어요</div>
+        <div class="empty-desc">다른 키워드나 소스를 선택해보세요.</div>
+      </div>`;
+    return;
+  }
+
+  document.getElementById('newsList').innerHTML = filtered.map(a => `
+    <a class="news-card" href="${a.link}" target="_blank" rel="noopener">
+      <div class="card-top">
+        <div class="card-title">${a.title}</div>
+        <div class="card-source">${a.source}</div>
+      </div>
+      ${a.desc ? `<div style="font-size:13px;color:#7c829a;line-height:1.5;margin-bottom:8px;">${a.desc.slice(0, 120)}${a.desc.length > 120 ? '...' : ''}</div>` : ''}
+      <div class="card-meta">
+        <span class="card-date">${formatDate(a.pubDate)}</span>
+        <div class="card-keywords">
+          ${a.matched.map(kw => `<span class="keyword-badge">${kw}</span>`).join('')}
+        </div>
+      </div>
+    </a>
+  `).join('');
+}
+
+loadAllFeeds();
+</script>
+</body>
+</html>
